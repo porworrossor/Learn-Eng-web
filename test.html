@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LingoPath Automated Test Runner</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 32px; background: #f8fafc; color: #1e293b; }
+    .card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); max-width: 800px; margin: 0 auto; }
+    .test-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 15px; }
+    .pass { color: #16a34a; font-weight: bold; }
+    .fail { color: #dc2626; font-weight: bold; }
+    .err-msg { font-size: 12px; color: #dc2626; margin-top: 4px; }
+    .summary { margin-top: 24px; padding: 16px; border-radius: 8px; font-weight: bold; text-align: center; font-size: 18px; }
+    .summary--success { background: #dcfce7; color: #15803d; }
+    .summary--error { background: #fee2e2; color: #b91c1c; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1 style="font-size: 24px; margin-bottom: 8px;">LingoPath Automated Unit & Workflow Tests</h1>
+    <p style="color: #64748b; font-size: 14px; margin-bottom: 24px;">Validating CEFR algorithms, scoring calculations, curriculum generation, and state persistence.</p>
+
+    <div id="test-results">Running tests...</div>
+  </div>
+
+  <script type="module">
+    import { runAllTests } from './tests/tests.js';
+
+    const results = runAllTests();
+    const container = document.getElementById('test-results');
+    
+    let passed = 0;
+    let failed = 0;
+
+    let html = '<div style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">';
+    results.forEach(r => {
+      if (r.passed) passed++;
+      else failed++;
+
+      html += `
+        <div class="test-row">
+          <div>
+            <div>${r.name}</div>
+            ${r.error ? `<div class="err-msg">${r.error}</div>` : ''}
+          </div>
+          <span class="${r.passed ? 'pass' : 'fail'}">${r.passed ? 'PASS ✓' : 'FAIL ✗'}</span>
+        </div>
+      `;
+    });
+    html += '</div>';
+
+    const isAllPassed = failed === 0;
+    html += `
+      <div class="summary ${isAllPassed ? 'summary--success' : 'summary--error'}">
+        ${isAllPassed ? 'All ' + passed + ' Tests Passed Successfully! 🎉' : failed + ' Tests Failed (' + passed + ' passed)'}
+      </div>
+    `;
+
+    container.innerHTML = html;
+  </script>
+</body>
+</html>
