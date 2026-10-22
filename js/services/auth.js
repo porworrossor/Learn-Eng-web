@@ -17,16 +17,14 @@ export const AuthService = {
     if (!email) {
       throw new Error('Please enter an email address.');
     }
-    // In demo mode, sign in or create user
-    const existingUser = Store.getUser();
     const user = {
-      id: existingUser?.id || 'usr_' + Date.now(),
+      id: 'usr_' + email.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase(),
       name: email.split('@')[0] || 'English Learner',
       email: email,
-      isDemo: true,
+      provider: 'email',
       lastLogin: Date.now()
     };
-    Store.setUser(user);
+    Store.switchUser(user);
     return user;
   },
 
@@ -35,44 +33,73 @@ export const AuthService = {
       throw new Error('Please fill in your name and email.');
     }
     const user = {
-      id: 'usr_' + Date.now(),
+      id: 'usr_' + email.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase(),
       name: name.trim(),
       email: email.trim(),
-      isDemo: true,
+      provider: 'email',
       registeredAt: Date.now(),
       lastLogin: Date.now()
     };
-    Store.setUser(user);
+    Store.switchUser(user);
+    return user;
+  },
+
+  // Handle Google Identity Services credential response
+  loginWithGoogleCredential(credentialToken) {
+    try {
+      const payload = this._decodeJwt(credentialToken);
+      const user = {
+        id: 'google_' + (payload.sub || Date.now()),
+        name: payload.name || payload.email.split('@')[0],
+        email: payload.email,
+        picture: payload.picture || null,
+        provider: 'google',
+        lastLogin: Date.now()
+      };
+      Store.switchUser(user);
+      return user;
+    } catch (err) {
+      console.error('Failed to parse Google credential:', err);
+      throw new Error('Invalid Google credential received.');
+    }
+  },
+
+  // Direct 1-click Google Sign-In helper (supports direct login or custom email/name)
+  loginWithGoogleProfile(name = 'Google Learner', email = 'user@gmail.com', picture = null) {
+    const user = {
+      id: 'google_' + email.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase(),
+      name: name.trim(),
+      email: email.trim(),
+      picture: picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2563eb&color=fff`,
+      provider: 'google',
+      lastLogin: Date.now()
+    };
+    Store.switchUser(user);
     return user;
   },
 
   enterDemoMode() {
     const demoUser = {
-      id: 'demo_user_1',
+      id: 'demo_user_alex',
       name: 'Alex Rivera',
       email: 'alex.learner@example.com',
-      isDemo: true,
+      provider: 'demo',
       lastLogin: Date.now()
     };
-    Store.setUser(demoUser);
-
-    // If no profile exists, set a starter profile
-    if (!Store.getProfile().displayName) {
-      Store.setProfile({
-        displayName: 'Alex Rivera',
-        targetLevel: 'B2',
-        currentLevel: 'A2',
-        studyTimePerDay: 30,
-        interests: ['Everyday Life', 'Travel & Culture', 'Science & Technology'],
-        explanationLanguage: 'en',
-        preferredDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
-      });
-    }
-
+    Store.switchUser(demoUser);
     return demoUser;
   },
 
   logout() {
     Store.logout();
+  },
+
+  _decodeJwt(token) {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
   }
 };

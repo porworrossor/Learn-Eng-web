@@ -75,15 +75,22 @@ export const Sidebar = {
 
         <div class="sidebar__footer">
           <div class="sidebar__user" id="sidebar-user-menu">
-            <div class="avatar">${user.name.charAt(0).toUpperCase()}</div>
+            ${user.picture ? `
+              <img src="${user.picture}" class="avatar" alt="${user.name}" style="object-fit: cover; border: 1px solid var(--color-neutral-200);" />
+            ` : `
+              <div class="avatar">${user.name.charAt(0).toUpperCase()}</div>
+            `}
             <div class="sidebar__user-info">
-              <div class="sidebar__user-name">${user.name}</div>
+              <div class="sidebar__user-name" style="display: flex; align-items: center; gap: 4px;">
+                <span>${user.name}</span>
+                ${user.provider === 'google' ? '<span style="font-size: 10px; background: #e8f0fe; color: #1a73e8; padding: 1px 4px; border-radius: 4px;">Google</span>' : ''}
+              </div>
               <div class="sidebar__user-level">Estimated CEFR: <strong>${currentLevel}</strong></div>
             </div>
           </div>
           <div style="margin-top: var(--space-2); display: flex; gap: var(--space-2);">
             <button class="btn btn--ghost btn--sm" style="width: 100%; font-size: 12px;" id="sidebar-logout-btn">
-              Sign Out
+              Switch Account / Sign Out
             </button>
           </div>
         </div>

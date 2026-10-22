@@ -94,6 +94,9 @@ export const CONFIG = {
   // AI API configuration (for future integration)
   AI_API_URL: '',
   AI_API_KEY: '',
+
+  // Google OAuth Client ID
+  GOOGLE_CLIENT_ID: '',
 };
 
 export function getCEFRLevel(numericValue) {

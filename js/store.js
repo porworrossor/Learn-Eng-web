@@ -68,7 +68,85 @@ export const Store = {
   },
 
   logout() {
+    const user = this.getUser();
+    if (user && user.id) {
+      this.saveUserSnapshot(user.id);
+    }
     this.remove('user');
+  },
+
+  // Save current active state snapshot to user account record
+  saveUserSnapshot(userId) {
+    if (!userId) return;
+    const snapshot = {
+      profile: this.get('profile'),
+      placement: this.get('placement'),
+      goal: this.get('goal'),
+      curriculum: this.get('curriculum'),
+      progress: this.get('progress'),
+      vocabulary: this.get('vocabulary'),
+      conversations: this.get('conversations'),
+      errors: this.get('errors'),
+      bookmarks: this.get('bookmarks'),
+      savedAt: Date.now()
+    };
+    try {
+      localStorage.setItem(`${PREFIX}user_data_${userId}`, JSON.stringify(snapshot));
+    } catch(e) {
+      console.warn('Snapshot error:', e);
+    }
+  },
+
+  // Load a user's snapshot into the active store keys
+  loadUserSnapshot(userId) {
+    if (!userId) return false;
+    try {
+      const raw = localStorage.getItem(`${PREFIX}user_data_${userId}`);
+      if (!raw) return false;
+      const snapshot = JSON.parse(raw);
+      if (snapshot.profile) this.set('profile', snapshot.profile);
+      if (snapshot.placement) this.set('placement', snapshot.placement);
+      if (snapshot.goal) this.set('goal', snapshot.goal);
+      if (snapshot.curriculum) this.set('curriculum', snapshot.curriculum);
+      if (snapshot.progress) this.set('progress', snapshot.progress);
+      if (snapshot.vocabulary) this.set('vocabulary', snapshot.vocabulary);
+      if (snapshot.conversations) this.set('conversations', snapshot.conversations);
+      if (snapshot.errors) this.set('errors', snapshot.errors);
+      if (snapshot.bookmarks) this.set('bookmarks', snapshot.bookmarks);
+      return true;
+    } catch(e) {
+      console.warn('Load snapshot error:', e);
+      return false;
+    }
+  },
+
+  switchUser(newUser) {
+    const prevUser = this.getUser();
+    if (prevUser && prevUser.id) {
+      this.saveUserSnapshot(prevUser.id);
+    }
+
+    this.setUser(newUser);
+    const loaded = this.loadUserSnapshot(newUser.id);
+    if (!loaded) {
+      // First time for this user: initialize starter profile
+      this.set('profile', {
+        displayName: newUser.name,
+        targetLevel: 'B2',
+        currentLevel: 'A2',
+        studyTimePerDay: 30,
+        interests: ['Everyday Life', 'Travel & Culture', 'Science & Technology'],
+        explanationLanguage: 'th-en',
+        preferredDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
+      });
+      // Clear previous user's specific progress/vocab for this new user
+      this.remove('placement');
+      this.remove('curriculum');
+      this.remove('progress');
+      this.remove('vocabulary');
+      this.remove('conversations');
+      this.remove('errors');
+    }
   },
 
   // --- Profile ---

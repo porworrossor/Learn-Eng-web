@@ -104,6 +104,29 @@ export function renderSettings(container) {
           </div>
         </div>
 
+        <!-- Google OAuth Integration -->
+        <div class="card" style="padding: var(--space-6);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-2);">
+            <h3 style="font-size: var(--text-lg); font-weight: bold;">
+              Google Account & Cloud Sign-In
+            </h3>
+            <span class="badge ${user.provider === 'google' ? 'badge--success' : 'badge--neutral'}">
+              ${user.provider === 'google' ? 'Connected via Google' : 'Local Account'}
+            </span>
+          </div>
+          <p style="font-size: 13px; color: var(--color-neutral-500); margin-bottom: var(--space-4);">
+            LingoPath preserves all assessment scores, vocabulary notebook, and curriculum progress per Google account. You can optionally paste your official Google Cloud OAuth Client ID here.
+          </p>
+
+          <div class="form-group">
+            <label class="form-label">Google OAuth Client ID (Optional)</label>
+            <input class="form-input" id="set-google-client-id" placeholder="your-client-id.apps.googleusercontent.com" value="${settings.googleClientId || ''}" />
+            <span style="font-size: 11px; color: var(--color-neutral-400); margin-top: 4px; display: block;">
+              Leave blank to use the built-in 1-Click Google Profile Sign-In.
+            </span>
+          </div>
+        </div>
+
         <button type="submit" class="btn btn--primary btn--lg btn--full">
           Save Settings
         </button>
@@ -127,6 +150,7 @@ export function renderSettings(container) {
     const endpoint = document.getElementById('set-ai-endpoint').value.trim();
     const apiKey = document.getElementById('set-ai-key').value.trim();
     const aiModel = document.getElementById('set-ai-model').value.trim();
+    const googleClientId = document.getElementById('set-google-client-id')?.value.trim() || '';
 
     Store.setSettings({
       ...settings,
@@ -134,7 +158,8 @@ export function renderSettings(container) {
       correctionStyle: correction,
       apiEndpoint: endpoint,
       apiKey: apiKey,
-      aiModel: aiModel
+      aiModel: aiModel,
+      googleClientId: googleClientId
     });
 
     const p = Store.getProfile();
